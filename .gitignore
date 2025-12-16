@@ -1,0 +1,7 @@
+first-commit/
+venv/
+backend/venv/
+node_modules/
+__pycache__/
+.pytest_cache/
+.genkit/

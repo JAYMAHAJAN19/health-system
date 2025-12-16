@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+requests
+torch
+transformers
+accelerate
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]

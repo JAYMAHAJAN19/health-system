@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header -->
+    <header class="bg-healthcare-primary text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white p-2 rounded-full">
+                    <svg class="w-8 h-8 text-healthcare-primary" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 2C8.34 2 7 3.34 7 5s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm7 6v4c0 1.66-1.34 3-3 3H6c-1.66 0-3-1.34-3-3V8c0-1.66 1.34-3 3-3h8c1.66 0 3 1.34 3 3z"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold">MedCare Hospital Management</h1>
+            </div>
+            <div id="userInfo" class="hidden">
+                <span class="mr-4" id="currentUser"></span>
+                <button onclick="logout()" class="bg-white text-healthcare-primary px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Login Section -->
+    <section id="loginSection" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-teal-50">
+        <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+            <div class="text-center">
+                <h2 class="mt-6 text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
+                <p class="mt-2 text-sm text-gray-600">Access your hospital management portal</p>
+            </div>
+            <form class="mt-8 space-y-6" onsubmit="handleLogin(event)">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input id="username" name="username" type="text" required 
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-healthcare-primary focus:border-healthcare-primary focus:z-10 sm:text-sm"
+                           placeholder="Enter your username">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input id="password" name="password" type="password" required 
+                           class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-healthcare-primary focus:border-healthcare-primary focus:z-10 sm:text-sm"
+                           placeholder="Enter your password">
+                </div>
+                <div>
+                    <button type="submit" 
+                            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-healthcare-primary hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-healthcare-primary">
+                        Sign in
+                    </button>
+                </div>
+            </form>
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="text-sm font-medium text-blue-800 mb-2">Demo Accounts:</h3>
+                <div class="text-xs text-blue-700 space-y-1">
+                    <div><strong>Patient:</strong> username: patient, password: 123</div>
+                    <div><strong>Billing Staff:</strong> username: billing, password: 123</div>
+                    <div><strong>Manager:</strong> username: manager, password: 123</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Application Container -->
+    <main id="mainApp" class="container mx-auto px-4 py-8 hidden">
+        <!-- Billing Staff Portal -->
+        <section id="billingPortal" class="hidden">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Billing Management Portal</h2>
+                
+                <!-- Patient Search -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Search Patient</h3>
+                    <div class="flex space-x-4">
+                        <input type="text" id="patientSearch" placeholder="Enter patient name..." 
+                               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-healthcare-primary">
+                        <button onclick="searchPatient()" 
+                                class="bg-healthcare-primary text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            Search
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div id="searchResults" class="mb-8 hidden">
+                    <h3 class="text-lg font-semibold mb-4">Search Results</h3>
+                    <div id="patientList" class="space-y-3"></div>
+                </div>
+
+                <!-- Unbilled Services -->
+                <div id="unbilledServices" class="hidden">
+                    <h3 class="text-lg font-semibold mb-4">Unbilled Services</h3>
+                    <div id="servicesList" class="mb-6"></div>
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="text-xl font-bold">
+                            Total: $<span id="totalAmount">0</span>
+                        </div>
+                        <button onclick="generateInvoice()" 
+                                class="bg-healthcare-accent text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                            Generate Invoice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hospital Manager Portal -->
+        <section id="managerPortal" class="hidden">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Hospital Analytics Dashboard</h2>
+                
+                <!-- Manager Role Verification -->
+                <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p class="text-sm text-yellow-800">
+                        🔒 <strong>Restricted Access:</strong> This analytics dashboard is only accessible to Hospital Managers.
+                        Your role: <span id="currentUserRole" class="font-semibold">Manager</span>
+                    </p>
+                </div>
+                
+                <!-- Data Refresh Section -->
+                <div class="mb-4 text-center">
+                    <button onclick="refreshAnalyticsData()"
+                            class="bg-healthcare-accent text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                        🔄 Refresh Analytics Data (Simulates 24-hour Update)
+                    </button>
+                    <p class="text-sm text-gray-500 mt-2">Last updated: <span id="lastRefreshTime">--</span></p>
+                </div>
+                
+                <!-- Analytics Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-healthcare-primary text-white p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold">Total Patients</h3>
+                        <p class="text-3xl font-bold" id="totalPatients">0</p>
+                    </div>
+                    <div class="bg-healthcare-secondary text-white p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold">Peak Hour</h3>
+                        <p class="text-3xl font-bold" id="peakHour">--</p>
+                    </div>
+                    <div class="bg-healthcare-accent text-white p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold">Daily Average</h3>
+                        <p class="text-3xl font-bold" id="dailyAverage">0</p>
+                    </div>
+                </div>
+
+                <!-- Chart Section -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Peak Hours Analysis</h3>
+                    <div class="chart-container">
+                        <canvas id="analyticsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Detailed Analytics Data</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hour</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Visits</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilization %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analyticsTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Patient Portal -->
+        <section id="patientPortal" class="hidden">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Patient Portal</h2>
+                <div id="patientWelcome" class="mb-8"></div>
+                
+                <!-- Invoice List -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Your Invoices</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patientInvoices" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Enhanced Invoice Generation Success Modal -->
+    <div id="invoiceModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 modal-enter">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                    <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">Invoice Generated Successfully!</h3>
+                <p class="text-sm text-gray-500 mb-2">Invoice Number: <span id="generatedInvoiceNumber" class="font-semibold text-healthcare-primary"></span></p>
+                <p class="text-sm text-gray-500 mb-2">Patient ID: <span id="generatedPatientId"></span></p>
+                <p class="text-sm text-gray-500 mb-6">Amount: <span id="generatedAmount"></span></p>
+                <div class="flex space-x-3">
+                    <button onclick="printInvoice()"
+                            class="flex-1 bg-healthcare-secondary text-white py-2 px-4 rounded-lg hover:bg-teal-600 transition-colors">
+                        Print Invoice
+                    </button>
+                    <button onclick="closeModal('invoiceModal')"
+                            class="flex-1 bg-healthcare-primary text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Success Modal -->
+    <div id="paymentSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 modal-enter">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                    <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">Payment Successful!</h3>
+                <p class="text-sm text-gray-500 mb-2">Invoice Number: <span id="paymentSuccessInvoiceNumber"></span></p>
+                <p class="text-sm text-gray-500 mb-6">Amount: <span id="paymentSuccessAmount"></span></p>
+                <p class="text-sm text-gray-600 mb-6">Thank you, your payment has been processed successfully.</p>
+                <button onclick="closeModal('paymentSuccessModal')"
+                        class="w-full bg-healthcare-primary text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manager Data Refresh Control (duplicate block kept for compatibility, can be removed if unused) -->
+    <div id="dataRefreshSection" class="mb-4 text-center">
+        <button onclick="refreshAnalyticsData()"
+                class="bg-healthcare-accent text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+            🔄 Refresh Analytics Data (Simulates 24-hour Update)
+        </button>
+        <p class="text-sm text-gray-500 mt-2">Last updated: <span id="lastRefreshTime">--</span></p>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 modal-enter">
+            <div class="mb-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Process Payment</h3>
+                <p class="text-sm text-gray-500 mt-1">Invoice ID: <span id="paymentInvoiceId"></span></p>
+                <p class="text-sm text-gray-500">Amount: $<span id="paymentAmount"></span></p>
+            </div>
+            
+            <form onsubmit="processPayment(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Card Number</label>
+                        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-healthcare-primary focus:border-healthcare-primary">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Expiry Date</label>
+                            <input type="text" id="expiryDate" placeholder="MM/YY" required
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-healthcare-primary focus:border-healthcare-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">CVV</label>
+                            <input type="text" id="cvv" placeholder="123" required
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-healthcare-primary focus:border-healthcare-primary">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cardholder Name</label>
+                        <input type="text" id="cardholderName" placeholder="John Doe" required
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-healthcare-primary focus:border-healthcare-primary">
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3 mt-6">
+                    <button type="button" onclick="closeModal('paymentModal')"
+                            class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="flex-1 bg-healthcare-accent text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
+                        Process Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-xl">
+            <div class="flex items-center space-x-3">
+                <div class="spinner"></div>
+                <span class="text-gray-700">Processing...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>

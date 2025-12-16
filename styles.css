@@ -1,0 +1,58 @@
+/* Custom healthcare color palette */
+:root {
+    --primary-blue: #0ea5e9;
+    --secondary-teal: #14b8a6;
+    --accent-green: #10b981;
+    --warning-orange: #f59e0b;
+    --error-red: #ef4444;
+    --neutral-gray: #6b7280;
+}
+
+.bg-healthcare-primary { background-color: var(--primary-blue); }
+.bg-healthcare-secondary { background-color: var(--secondary-teal); }
+.bg-healthcare-accent { background-color: var(--accent-green); }
+.text-healthcare-primary { color: var(--primary-blue); }
+.text-healthcare-secondary { color: var(--secondary-teal); }
+
+/* Modal animations */
+.modal-enter {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Loading spinner */
+.spinner {
+    border: 3px solid #f3f4f6;
+    border-top: 3px solid var(--primary-blue);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Status badges */
+.status-paid {
+    background-color: var(--accent-green);
+    color: white;
+}
+
+.status-unpaid {
+    background-color: var(--error-red);
+    color: white;
+}
+
+/* Chart container */
+.chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
